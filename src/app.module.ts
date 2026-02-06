@@ -7,6 +7,8 @@ import { Book } from './books/entities/books.entity';
 import { AuthorsModule } from './authors/authors.module';
 import { Author } from './authors/entities/author.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { User } from './auth/entities/user.entity';
 
 @Module({
   imports: [
@@ -14,7 +16,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       envFilePath: ['.dev.env', '.env'],
       isGlobal: true,
     }),
-    BooksModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -25,11 +26,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         username: configService.get<string>('DATABASE_USER'),
         password: configService.get<string>('DATABASE_PASSWORD'),
         database: configService.get<string>('DATABASE_NAME'),
-        entities: [Book, Author],
+        entities: [Book, Author, User],
         synchronize: true,
       }),
     }),
     AuthorsModule,
+    AuthModule,
+    BooksModule,
     ],
   controllers: [AppController],
   providers: [AppService],
