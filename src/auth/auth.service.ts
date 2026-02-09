@@ -5,10 +5,14 @@ import { Repository } from 'typeorm';
 import { SignUpDto } from './dto/signup.dto';
 import * as bcrypt from "bcrypt";
 import { SignInDto } from './dto/signin.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-    constructor(@InjectRepository(User) private userRepository: Repository<User>){}
+    constructor(
+        @InjectRepository(User) private userRepository: Repository<User>,
+        private jwtService: JwtService
+    ){}
 
     async signUp(signUpDto: SignUpDto){
         const { email, password } = signUpDto;
@@ -34,12 +38,21 @@ export class AuthService {
             throw new UnauthorizedException("Invalid email or password");
         }
 
+        console.log("#### USER : ", user);
+
         const isMatch = await bcrypt.compare(signInDto.password, user.password);
 
         if(!isMatch) {
             throw new UnauthorizedException("Invalid email or password");
         }
 
-        return "Logged in";
+        const payload = {
+            id: user.id,
+            email: signInDto.email,
+            role: user.role
+        }
+
+        const accessToken = await this.jwtService.signAsync(payload);
+        return {accessToken};
     }
 }
